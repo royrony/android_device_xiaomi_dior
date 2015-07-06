@@ -10,7 +10,9 @@ endif
 BOARD_USES_GENERIC_AUDIO := true
 USE_CAMERA_STUB := true
 
-TARGET_USES_AOSP := false
+TARGET_USES_AOSP := true
+TARGET_KERNEL_APPEND_DTB := true
+
 # Compile with msm kernel
 TARGET_COMPILE_WITH_MSM_KERNEL := true
 TARGET_HAS_QC_KERNEL_SOURCE := true
@@ -39,6 +41,7 @@ ARCH_ARM_HAVE_TLS_REGISTER := true
 TARGET_HARDWARE_3D := false
 TARGET_BOARD_PLATFORM := msm8226
 TARGET_BOOTLOADER_BOARD_NAME := MSM8226
+BOOTLOADER_GCC_VERSION := arm-eabi-4.8
 
 BOARD_KERNEL_BASE        := 0x00000000
 BOARD_KERNEL_PAGESIZE    := 2048
@@ -46,7 +49,7 @@ BOARD_KERNEL_TAGS_OFFSET := 0x01E00000
 BOARD_RAMDISK_OFFSET     := 0x02000000
 
 # Enables Adreno RS driver
-OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
+#OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
 
 #TARGET_BOOTIMG_SIGNED := true
 
@@ -64,7 +67,7 @@ TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_PERSISTIMAGE_FILE_SYSTEM_TYPE := ext4
 
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 earlyprintk androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=23 msm_rtb.filter=0x37 androidboot.bootdevice=msm_sdcc.1
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 earlyprintk androidboot.console=ttyHSL0 androidboot.hardware=qcom user_debug=23 msm_rtb.filter=0x37 androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive
 BOARD_KERNEL_SEPARATED_DT := true
 
 BOARD_EGL_CFG := device/qcom/$(TARGET_BOARD_PLATFORM)/egl.cfg
@@ -85,7 +88,7 @@ BOARD_CHARGER_ENABLE_SUSPEND := true
 ADD_RADIO_FILES ?= true
 
 # Added to indicate that protobuf-c is supported in this build
-PROTOBUF_SUPPORTED := true
+PROTOBUF_SUPPORTED := false
 
 TARGET_USES_ION := true
 TARGET_USE_KINGFISHER_OPTIMIZATION := true
@@ -106,3 +109,16 @@ MALLOC_IMPL := dlmalloc
 TARGET_CPU_MEMCPY_BASE_OPT_DISABLE := true
 
 USE_OPENGL_RENDERER := true
+# Enable dex pre-opt to speed up initial boot
+ifneq ($(TARGET_USES_AOSP),true)
+  ifeq ($(HOST_OS),linux)
+    ifeq ($(WITH_DEXPREOPT),)
+      WITH_DEXPREOPT := true
+      WITH_DEXPREOPT_PIC := true
+      ifneq ($(TARGET_BUILD_VARIANT),user)
+      # Retain classes.dex in APK's for non-user builds
+      DEX_PREOPT_DEFAULT := nostripping
+      endif
+    endif
+  endif
+endif

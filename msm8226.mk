@@ -1,4 +1,4 @@
-TARGET_USES_QCOM_BSP := true
+TARGET_USES_QCOM_BSP := false
 TARGET_USES_QCA_NFC := other
 
 ifeq ($(TARGET_USES_QCOM_BSP), true)
@@ -104,15 +104,15 @@ endif
 
 endif # TARGET_USES_QCA_NFC
 
-PRODUCT_BOOT_JARS += qcmediaplayer \
+#PRODUCT_BOOT_JARS += qcmediaplayer \
                      org.codeaurora.Performance \
                      vcard \
                      tcmiface
-ifneq ($(strip $(QCPATH)),)
-PRODUCT_BOOT_JARS += WfdCommon
-PRODUCT_BOOT_JARS += qcom.fmradio
-PRODUCT_BOOT_JARS += oem-services
-endif
+#ifneq ($(strip $(QCPATH)),)
+#PRODUCT_BOOT_JARS += WfdCommon
+#PRODUCT_BOOT_JARS += qcom.fmradio
+#PRODUCT_BOOT_JARS += oem-services
+#endif
 
 
 PRODUCT_COPY_FILES += \
