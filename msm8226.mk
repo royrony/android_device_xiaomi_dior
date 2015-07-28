@@ -108,6 +108,9 @@ endif # TARGET_USES_QCA_NFC
                      org.codeaurora.Performance \
                      vcard \
                      tcmiface
+PRODUCT_BOOT_JARS += tcmiface
+PRODUCT_BOOT_JARS += com.qti.dpmframework
+
 #ifneq ($(strip $(QCPATH)),)
 #PRODUCT_BOOT_JARS += WfdCommon
 #PRODUCT_BOOT_JARS += qcom.fmradio
