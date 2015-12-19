@@ -14,29 +14,19 @@
 # limitations under the License.
 #
 
-$(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Charger
-PRODUCT_PACKAGES += \
-    charger_res_images
+# Inherit from hardware-specific part of the product configuration
+$(call inherit-product, device/xiaomi/dior/device.mk)
 
-# Filesystem
-PRODUCT_PACKAGES += \
-    mkfs.f2fs \
-    make_ext4fs \
-    resize2fs \
-    setup_fs \
-    e2fsck_static \
-    mke2fs_static \
-    resize2fs_static
+# Device identifier. This must come after all inclusions.
+PRODUCT_NAME := omni_dior
+PRODUCT_DEVICE := dior
+PRODUCT_BRAND := Xiaomi
+PRODUCT_MODEL := HM NOTE LTE
+PRODUCT_MANUFACTURER := Xiaomi
 
-# Ramdisk
-PRODUCT_PACKAGES += \
-    fstab.dior \
-    init.dior.rc \
-    init.dior.usb.rc \
-    ueventd.dior.rc
+PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
 
-PRODUCT_COPY_FILES += device/xiaomi/dior/recovery.fstab:recovery/root/etc/twrp.fstab
-
-PRODUCT_COPY_FILES += device/xiaomi/dior/mkfs.f2fs:recovery/root/sbin/mkfs.f2fs
+PRODUCT_BUILD_PROP_OVERRIDES += \
+    PRODUCT_NAME=dior

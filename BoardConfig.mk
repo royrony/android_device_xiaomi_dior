@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 
-# ANT+
-BOARD_ANT_WIRELESS_DEVICE := "qualcomm-smd"
-
 # Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
@@ -24,17 +21,6 @@ TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_MEMCPY_BASE_OPT_DISABLE := true
 TARGET_CPU_VARIANT := krait
-
-# Audio
-BOARD_USES_ALSA_AUDIO := true
-AUDIO_FEATURE_ENABLED_FM := true
-AUDIO_FEATURE_ENABLED_MULTI_VOICE_SESSIONS := true
-
-# Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/xiaomi/dior/bluetooth
-BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_QCOM := true
-BLUETOOTH_HCI_USE_MCT := true
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := MSM8226
@@ -56,15 +42,8 @@ BOARD_CACHEIMAGE_PARTITION_SIZE    := 402653184
 BOARD_PERSISTIMAGE_PARTITION_SIZE  := 33554432
 BOARD_FLASH_BLOCK_SIZE             := 131072
 
-# FM
-BOARD_HAVE_QCOM_FM := true
-
 # Fonts
 EXTENDED_FONT_FOOTPRINT := true
-
-# GPS
-TARGET_GPS_HAL_PATH := device/xiaomi/dior/gps
-TARGET_PROVIDES_GPS_LOC_API := true
 
 # Graphics
 TARGET_USES_C2D_COMPOSITION := true
@@ -85,14 +64,6 @@ MAX_EGL_CACHE_KEY_SIZE := 12*1024
 # of the device.
 MAX_EGL_CACHE_SIZE := 2048*1024
 
-# Hardware tunables
-BOARD_HARDWARE_CLASS := device/xiaomi/dior/cmhw/
-
-# Init
-TARGET_UNIFIED_DEVICE := true
-TARGET_INIT_VENDOR_LIB := libinit_msm
-TARGET_LIBINIT_DEFINES_FILE := device/xiaomi/dior/init/init_dior.c
-
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/xiaomi/dior
 TARGET_KERNEL_CONFIG := dior_xenon_defconfig
@@ -102,13 +73,6 @@ BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_CUSTOM_BOOTIMG_MK := device/xiaomi/dior/mkbootimg.mk
 BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x02000000 --tags_offset 0x01e00000
-
-# Camera
-USE_CAMERA_STUB := true
-USE_DEVICE_SPECIFIC_CAMERA := true
-
-# Lights
-TARGET_PROVIDES_LIBLIGHT := true
 
 # Memory
 MALLOC_IMPL := dlmalloc
@@ -126,9 +90,23 @@ BOARD_USES_QCOM_HARDWARE := true
 # Recovery
 TARGET_RECOVERY_FSTAB := device/xiaomi/dior/rootdir/etc/fstab.dior
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
-COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
+BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
+
+# TWRP-Specific
+DEVICE_RESOLUTION := 720x1280
+TW_THEME := portrait_hdpi
+RECOVERY_SDCARD_ON_DATA := true
+TW_INCLUDE_CRYPTO := true
+TW_INTERNAL_STORAGE_PATH := "/data/media"
+TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
+TW_EXTERNAL_STORAGE_PATH := "/external_sd"
+TW_EXTERNAL_STORAGE_MOUNT_POINT := "external_sd"
+TW_DEFAULT_EXTERNAL_STORAGE := true
+TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+RECOVERY_GRAPHICS_USE_LINELENGTH := true
+BOARD_SUPPRESS_SECURE_ERASE := true
 
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
@@ -142,17 +120,3 @@ BOARD_USES_QC_TIME_SERVICES := true
 BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun0/file
 
-# Wifi
-BOARD_HAS_QCOM_WLAN := true
-BOARD_WLAN_DEVICE := qcwcn
-BOARD_HOSTAPD_DRIVER := NL80211
-BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_qcwcn
-BOARD_WPA_SUPPLICANT_DRIVER := NL80211
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_qcwcn
-WIFI_DRIVER_FW_PATH_AP := "ap"
-WIFI_DRIVER_FW_PATH_STA := "sta"
-WPA_SUPPLICANT_VERSION := VER_0_8_X
-TARGET_USES_QCOM_WCNSS_QMI := true
-
-# inherit from the proprietary version
--include vendor/xiaomi/dior/BoardConfigVendor.mk
