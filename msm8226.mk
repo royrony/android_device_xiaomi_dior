@@ -18,6 +18,8 @@ PRODUCT_COPY_FILES += device/qcom/msm8226/media/media_profiles_8226.xml:system/e
                       device/qcom/msm8226/media/media_codecs_performance_8226.xml:system/etc/media_codecs_performance.xml
 endif
 
+PRODUCT_PROPERTY_OVERRIDES += \
+       dalvik.vm.heapminfree=2m
 $(call inherit-product, device/qcom/common/common.mk)
 
 PRODUCT_NAME := msm8226
