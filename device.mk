@@ -38,5 +38,3 @@ PRODUCT_PACKAGES += \
     ueventd.dior.rc
 
 PRODUCT_COPY_FILES += device/xiaomi/dior/recovery.fstab:recovery/root/etc/twrp.fstab
-
-PRODUCT_COPY_FILES += device/xiaomi/dior/mkfs.f2fs:recovery/root/sbin/mkfs.f2fs

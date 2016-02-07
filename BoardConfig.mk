@@ -19,8 +19,18 @@ TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_CPU_MEMCPY_BASE_OPT_DISABLE := true
-TARGET_CPU_VARIANT := krait
+TARGET_CPU_VARIANT := cortex-a7
+
+# QCOM hardware
+BOARD_USES_QCOM_HARDWARE := true
+
+# Display
+TARGET_QCOM_DISPLAY_VARIANT := caf-msm8974
+
+# Audio/media
+TARGET_QCOM_AUDIO_VARIANT := caf-msm8974
+TARGET_QCOM_MEDIA_VARIANT := caf-msm8974
+TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := MSM8226
@@ -29,9 +39,11 @@ TARGET_NO_RADIOIMAGE := true
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
+BOARD_CHARGER_DISABLE_INIT_BLANK := true
+BOARD_CHARGER_ENABLE_SUSPEND := true
 
 # Encryption
-TARGET_HW_DISK_ENCRYPTION := true
+TARGET_HW_DISK_ENCRYPTION := false
 
 # Filesystem
 BOARD_BOOTIMAGE_PARTITION_SIZE     := 16777216
@@ -66,8 +78,8 @@ MAX_EGL_CACHE_SIZE := 2048*1024
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/xiaomi/dior
-TARGET_KERNEL_CONFIG := dior_xenon_defconfig
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37
+TARGET_KERNEL_CONFIG := dior_custom_defconfig
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=dior user_debug=31 msm_rtb.filter=0x37 androidboot.selinux=permisive
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
@@ -84,9 +96,6 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno305
 # Power
 TARGET_POWERHAL_VARIANT := qcom
 
-# QCOM hardware
-BOARD_USES_QCOM_HARDWARE := true
-
 # Recovery
 TARGET_RECOVERY_FSTAB := device/xiaomi/dior/rootdir/etc/fstab.dior
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
@@ -97,6 +106,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 # TWRP-Specific
 DEVICE_RESOLUTION := 720x1280
 TW_THEME := portrait_hdpi
+TW_TARGET_USES_QCOM_BSP := true
 RECOVERY_SDCARD_ON_DATA := true
 TW_INCLUDE_CRYPTO := true
 TW_INTERNAL_STORAGE_PATH := "/data/media"
@@ -110,8 +120,6 @@ BOARD_SUPPRESS_SECURE_ERASE := true
 
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
-
-BOARD_SEPOLICY_DIRS += device/xiaomi/dior/sepolicy
 
 # Time services
 BOARD_USES_QC_TIME_SERVICES := true

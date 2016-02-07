@@ -29,46 +29,26 @@ import init.dior.usb.rc
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug
-    write /sys/block/mmcblk0/queue/scheduler noop
-    write /sys/block/mmcblk0/bdi/read_ahead_kb 512
+    write /sys/block/mmcblk0/queue/scheduler bfq
+    write /sys/block/mmcblk1/queue/scheduler bfq
+    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
+    write /sys/block/mmcblk1/bdi/read_ahead_kb 1024
 
 on init
     # Set permissions for persist partition
     mkdir /persist 0771 system system
     mkdir /firmware 0771 system system
-    
-    # See storage config details at http://source.android.com/tech/storage/
-    mkdir /mnt/shell/emulated 0700 shell shell
-    mkdir /storage/emulated 0555 root root
-
-    export EXTERNAL_STORAGE /storage/emulated/legacy
-    export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
-    export EMULATED_STORAGE_TARGET /storage/emulated
-    export SECONDARY_STORAGE /storage/sdcard1:/storage/usbdisk
 
     # Support legacy paths
-    symlink /storage/emulated/legacy /sdcard
-    symlink /storage/emulated/legacy /mnt/sdcard
-    symlink /storage/emulated/legacy /storage/sdcard0
-    symlink /mnt/shell/emulated/0 /storage/emulated/legacy
+    symlink /sdcard /mnt/sdcard
+    symlink /sdcard /storage/sdcard0
 
-    # External SD card
-    mkdir /mnt/media_rw/sdcard1 0700 media_rw media_rw
-    mkdir /storage/sdcard1 0700 root root
-    symlink /storage/sdcard1 /mnt/external_sd
-    symlink /storage/sdcard1 /external_sd
-
-    # USB OTG drive
-    mkdir /mnt/media_rw/usbdisk 0700 media_rw media_rw
-    mkdir /storage/usbdisk 0700 root root
-    symlink /storage/usbdisk /mnt/usb_storage
-    symlink /storage/usbdisk /usb_storage
+    # Symbols required for blobs
+    export LD_PRELOAD "/system/lib/libboringssl-compat.so"
 
 on fs
     mount_all fstab.dior
     restorecon_recursive /persist
-
-    setprop ro.crypto.fuse_sdcard true
 
 on early-boot
     # Set RLIMIT_MEMLOCK to 64MB
@@ -76,6 +56,13 @@ on early-boot
     write /sys/kernel/boot_adsp/boot 1
 
 on boot
+    # Switch to interactive and let PowerHAL configure it
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+    chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+
     # Enable writing to led blink node from userspace
     chown system system /sys/class/leds/red/blink
     chown system system /sys/class/leds/red/duty_pcts
@@ -87,11 +74,42 @@ on boot
     chown system system /sys/class/leds/blue/duty_pcts
     chown system system /sys/class/leds/blue/ramp_step_ms
 
+    # Dynamic FPS
+    chown system graphics /sys/class/graphics/fb0/dynamic_fps
+    chmod 0664 /sys/class/graphics/fb0/dynamic_fps
+
+    # msm_thermal (for power HAL usage)
+    chown system system /sys/kernel/msm_thermal/user_maxfreq
+    chmod 0664 /sys/kernel/msm_thermal/user_maxfreq
+    write /sys/kernel/msm_thermal/user_maxfreq 1344000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1344000
+
+    # msm hotplug
+    write /sys/module/msm_hotplug/max_cpus_online 3
+    write /sys/module/msm_hotplug/msm_enabled 1
+
+    # Set light thermal restrictions while running bootanimation
+    # [throttle_freq, throttle_temp, unthrottle_temp]
+    write /sys/kernel/msm_thermal/low_thresh "1593600 45 43"
+    write /sys/kernel/msm_thermal/mid_thresh "1344000 50 47"
+    write /sys/kernel/msm_thermal/high_thresh "1094400 55 53"
+    write /sys/kernel/msm_thermal/enabled 1
+
     chown system system /sys/class/leds/torch-light/brightness
     chown system system /sys/class/leds/button-backlight/brightness
 
+    # Key disabler
+    chown root system /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
+    chmod 0664 /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
+    restorecon /sys/bus/i2c/drivers/atmel_mxt_ts/5-004b/keys_off
+
     chown bluetooth bluetooth /sys/module/hci_smd/parameters/hcismd_set
     chmod 0660 /sys/module/hci_smd/parameters/hcismd_set
+
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level related
+    write /sys/bus/msm_subsys/devices/subsys3/restart_level related
 
     # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
@@ -102,6 +120,8 @@ on boot
     chmod 2770 /dev/socket/qmux_bluetooth
     mkdir /dev/socket/qmux_gps 0770 gps gps
     chmod 2770 /dev/socket/qmux_gps
+    chown system system /sys/module/radio_iris_transport/parameters/fmsmd_set
+    chmod 0660 /sys/module/radio_iris_transport/parameters/fmsmd_set
 
     # Prevents permission denied error for telephony
     chmod 0644 /proc/cmdline
@@ -130,7 +150,6 @@ on boot
     write /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal 1
 
 on post-fs-data
-    mkdir /data/media 0770 media_rw media_rw
 
     # Create directories for Location services
     mkdir /data/misc/location 0770 gps gps
@@ -150,7 +169,6 @@ on post-fs-data
     mkdir /data/system/sensors
     chmod 775 /data/system/sensors
     write /data/system/sensors/settings 1
-    restorecon /data/system/sensors/settings
     chmod 664 /data/system/sensors/settings
 
     # AKM setting data
@@ -162,17 +180,15 @@ on post-fs-data
     mkdir /persist/misc/sensors
     chmod 775 /persist/misc/sensors
 
+    # Create FM directories for patchdownloader
+    mkdir /data/misc/fm 0770 system system
+    chmod 0770 /data/misc/fm
+
     setprop vold.post_fs_data_done 1
 
     # Adjust vibrator amplitude
     chown system system /sys/class/timed_output/vibrator/amp
     chmod 0664 /sys/class/timed_output/vibrator/amp
-    restorecon /sys/class/timed_output/vibrator/amp
-
-    # Color calibration control
-    chown root system /sys/devices/virtual/graphics/fb0/rgb
-    chmod 0664 /sys/devices/virtual/graphics/fb0/rgb
-    restorecon /sys/devices/virtual/graphics/fb0/rgb
 
 service irsc_util /system/bin/logwrapper /system/bin/irsc_util "/etc/sec_config"
     class main
@@ -312,17 +328,6 @@ service ril-daemon2 /system/bin/rild -c 2
 on property:persist.radio.multisim.config=none
     start ril-daemon2
 
-service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
-    class late_start
-
-service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -w 1023 /mnt/media_rw/sdcard1 /storage/sdcard1
-    class late_start
-    disabled
-
-service fuse_usbdisk /system/bin/sdcard -u 1023 -g 1023 -w 1023 /mnt/media_rw/usbdisk /storage/usbdisk
-    class late_start
-    disabled
-
 service qcamerasvr /system/bin/mm-qcamera-daemon
     class late_start
     user camera
@@ -333,15 +338,15 @@ service time_daemon /system/bin/time_daemon
     user root
     group root
 
-service mpdecision /system/bin/mpdecision --avg_comp
-    user root
-    group root system
-    disabled
+#service mpdecision /system/bin/mpdecision --avg_comp
+#    user root
+#    group root system
+#    disabled
 
-service thermal-engine /system/bin/thermal-engine
-    class main
-    user root
-    group root
+#service thermal-engine /system/bin/thermal-engine
+#    class main
+#    user root
+#    group root
 
 service qseecomd /system/bin/qseecomd
     class core
@@ -365,6 +370,13 @@ service gsiff_daemon /system/bin/gsiff_daemon
     user system
     group gps net_raw
 
+service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
+   class late_start
+   user system
+   group system
+   disabled
+   oneshot
+
 service charger /sbin/healthd -c
     class charger
     critical
@@ -378,6 +390,7 @@ on charger
     write /sys/module/msm_pm/modes/cpu2/power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu3/power_collapse/suspend_enabled 1
     write /sys/module/msm_pm/modes/cpu0/power_collapse/idle_enabled 1
+    write /sys/kernel/msm_thermal/enabled 0
     write /sys/devices/system/cpu/cpu1/online 1
     write /sys/devices/system/cpu/cpu2/online 1
     write /sys/devices/system/cpu/cpu3/online 1
@@ -389,6 +402,7 @@ on charger
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 300000
     write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
     write /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq 300000
+    write /sys/kernel/msm_thermal/enabled 1
     write /sys/devices/system/cpu/cpu1/online 0
     write /sys/devices/system/cpu/cpu2/online 0
     write /sys/devices/system/cpu/cpu3/online 0
@@ -415,84 +429,6 @@ on property:sys.boot_completed=1
     write /sys/devices/system/cpu/cpu1/online 1
     write /sys/devices/system/cpu/cpu2/online 1
     write /sys/devices/system/cpu/cpu3/online 1
-
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
-    write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
-    write /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy 0
-    write /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor 2
-    write /sys/devices/system/cpu/cpufreq/ondemand/down_differential 10
-    write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core 70
-    write /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core 10
-    write /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq 787200
-    write /sys/devices/system/cpu/cpufreq/ondemand/sync_freq 300000
-    write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load 80
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 300000
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq 300000
-    start mpdecision
-
-# CyanogenMod Performance Profiles
-
-# Powersave
-on property:sys.perf.profile=0
-    stop mpdecision
-    write /sys/devices/system/cpu/cpu1/online 1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor powersave
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor powersave
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor powersave
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor powersave
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1190400
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1190400
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1190400
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1190400
-    write /sys/devices/system/cpu/sched_mc_power_savings 2
-    write /sys/class/kgsl/kgsl-3d0/devfreq/governor powersave
-    write /sys/class/devfreq/qcom,cpubw.64/governor powersave
-    start mpdecision
-
-# Balanced
-on property:sys.perf.profile=1
-    stop mpdecision
-    write /sys/devices/system/cpu/cpu1/online 1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor ondemand
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1401600
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1401600
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1401600
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1401600
-    write /sys/devices/system/cpu/sched_mc_power_savings 1
-    write /sys/class/kgsl/kgsl-3d0/devfreq/governor msm-adreno-tz
-    write /sys/class/devfreq/qcom,cpubw.64/governor msm_cpufreq
-    start mpdecision
-
-# Performance
-on property:sys.perf.profile=2
-    stop mpdecision
-    write /sys/devices/system/cpu/cpu1/online 1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1593600
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1593600
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq 1593600
-    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq 1593600
-    write /sys/devices/system/cpu/sched_mc_power_savings 0
-    write /sys/class/kgsl/kgsl-3d0/devfreq/governor performance
-    write /sys/class/devfreq/qcom,cpubw.64/governor performance
 
 # Set different perfer network type for different phone type
 on property:ro.boot.modem=LTETD
