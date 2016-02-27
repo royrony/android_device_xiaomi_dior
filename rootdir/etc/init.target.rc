@@ -32,7 +32,7 @@ on early-init
     symlink /data/tombstones /tombstones
 
 on post-fs
-    export LD_PRELOAD libNimsWrap.so
+    # export LD_PRELOAD libNimsWrap.so
 
 on fs
     mount_all fstab.qcom
@@ -58,6 +58,17 @@ on fs
 on post-fs-data
     mkdir /data/tombstones 0771 system system
     mkdir /tombstones/modem 0771 system system
+
+    # Set light thermal restrictions while running bootanimation
+    # [throttle_freq, throttle_temp, unthrottle_temp]
+    write /sys/kernel/msm_thermal/low_thresh "1593600 50 47"
+    write /sys/kernel/msm_thermal/mid_thresh "1344000 55 53"
+    write /sys/kernel/msm_thermal/high_thresh "1190400 60 57"
+    write /sys/kernel/msm_thermal/enabled 1
+
+    # Adjust vibrator amplitude
+    chown system system /sys/class/timed_output/vibrator/amp
+    chmod 0664 /sys/class/timed_output/vibrator/amp
 
 on boot
     insmod /system/lib/modules/adsprpc.ko

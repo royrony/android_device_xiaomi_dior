@@ -1,4 +1,4 @@
-TARGET_USES_QCOM_BSP := false
+TARGET_USES_QCOM_BSP := true
 TARGET_USES_QCA_NFC := other
 
 #ifeq ($(TARGET_USES_QCOM_BSP), true)
@@ -6,53 +6,78 @@ TARGET_USES_QCA_NFC := other
 TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 #endif #TARGET_USES_QCOM_BSP
 
-DEVICE_PACKAGE_OVERLAYS := device/qcom/msm8226/overlay
+# call the proprietary setup
+$(call inherit-product, vendor/xiaomi/dior/dior-vendor.mk)
+
+LOCAL_PATH := device/xiaomi/dior
+DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
+
+PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
+PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
 #TARGET_DISABLE_DASH := true
 #TARGET_DISABLE_OMX_SECURE_TEST_APP := true
 
 # media_profiles and media_codecs xmls for 8226
 ifeq ($(TARGET_ENABLE_QC_AV_ENHANCEMENTS), true)
-PRODUCT_COPY_FILES += device/qcom/msm8226/media/media_profiles_8226.xml:system/etc/media_profiles.xml \
-                      device/qcom/msm8226/media/media_codecs_8226.xml:system/etc/media_codecs.xml \
-                      device/qcom/msm8226/media/media_codecs_performance_8226.xml:system/etc/media_codecs_performance.xml
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/media/media_profiles_8226.xml:system/etc/media_profiles.xml \
+                      $(LOCAL_PATH)/media/media_codecs_8226.xml:system/etc/media_codecs.xml \
+                      $(LOCAL_PATH)/media/media_codecs_performance_8226.xml:system/etc/media_codecs_performance.xml
 endif
 
 PRODUCT_PROPERTY_OVERRIDES += \
        dalvik.vm.heapminfree=2m
 $(call inherit-product, device/qcom/common/common.mk)
 
-PRODUCT_NAME := msm8226
-PRODUCT_DEVICE := msm8226
-
 # Audio configuration file
 PRODUCT_COPY_FILES += \
-    device/qcom/msm8226/audio_policy.conf:system/etc/audio_policy.conf \
-    device/qcom/msm8226/audio_effects.conf:system/vendor/etc/audio_effects.conf \
-    device/qcom/msm8226/mixer_paths.xml:system/etc/mixer_paths.xml
+    $(LOCAL_PATH)/audio_policy.conf:system/etc/audio_policy.conf \
+    $(LOCAL_PATH)/audio_effects.conf:system/vendor/etc/audio_effects.conf \
+    $(LOCAL_PATH)/mixer_paths.xml:system/etc/mixer_paths.xml
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Bluetooth_cal.acdb:system/etc/acdbdata/MTP/MTP_Bluetooth_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_General_cal.acdb:system/etc/acdbdata/MTP/MTP_General_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Global_cal.acdb:system/etc/acdbdata/MTP/MTP_Global_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Handset_cal.acdb:system/etc/acdbdata/MTP/MTP_Handset_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Hdmi_cal.acdb:system/etc/acdbdata/MTP/MTP_Hdmi_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Headset_cal.acdb:system/etc/acdbdata/MTP/MTP_Headset_cal.acdb \
+    $(LOCAL_PATH)/acdbdata/MTP/MTP_Speaker_cal.acdb:system/etc/acdbdata/MTP/MTP_Speaker_cal.acdb
+
 
 PRODUCT_PACKAGES += \
     libqcomvisualizer \
     libqcomvoiceprocessing \
     libqcompostprocbundle
 
-# Bluetooth configuration files
-#PRODUCT_COPY_FILES += \
-    system/bluetooth/data/main.le.conf:system/etc/bluetooth/main.conf
+#camera
+PRODUCT_PACKAGES += \
+    camera.msm8226
 
 #fstab.qcom
 PRODUCT_PACKAGES += fstab.qcom
+
+#keylayout
+PRODUCT_PACKAGES += \
+	atmel-maxtouch.kl \
+	ft5x06.kl \
+	ist30xx.kl \
+	msm8226-tapan-snd-card_Button_Jack.kl
+
 #wlan driver
 PRODUCT_COPY_FILES += \
-    device/qcom/msm8226/WCNSS_qcom_cfg.ini:system/etc/wifi/WCNSS_qcom_cfg.ini \
-    device/qcom/msm8226/WCNSS_qcom_wlan_nv.bin:persist/WCNSS_qcom_wlan_nv.bin
+    kernel/xiaomi/dior/drivers/staging/prima/firmware_bin/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
+    kernel/xiaomi/dior/drivers/staging/prima/firmware_bin/WCNSS_qcom_cfg.ini:system/etc/firmware/wlan/prima/WCNSS_qcom_cfg.ini
 
 PRODUCT_PACKAGES += \
     wpa_supplicant_overlay.conf \
-    p2p_supplicant_overlay.conf
+    p2p_supplicant_overlay.conf \
+    WCNSS_qcom_wlan_nv.bin \
+    WCNSS_qcom_wlan_nv_h3gbl.bin \
+    WCNSS_qcom_wlan_nv_h3td.bin \
+    WCNSS_qcom_wlan_nv_h3w.bin
 
-PRODUCT_PACKAGES += wcnss_service \
-		    pronto_wlan.ko
+PRODUCT_PACKAGES += wcnss_service
 
 # MIDI feature
 PRODUCT_COPY_FILES += \
@@ -141,5 +166,13 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     camera2.portability.force_api=1
 
+# Debuggable by default
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.service.adb.enable=1 \
+    persist.service.debuggable=1 \
+    persist.sys.usb.config=mtp,adb \
+    ro.build.selinux=1 \
+    ro.secure=0
+
 PRODUCT_COPY_FILES += \
-    device/qcom/msm8226/whitelist_appops.xml:system/etc/whitelist_appops.xml
+    $(LOCAL_PATH)/whitelist_appops.xml:system/etc/whitelist_appops.xml

@@ -15,11 +15,12 @@ persist.rild.nitz_short_ons_0=
 persist.rild.nitz_short_ons_1=
 persist.rild.nitz_short_ons_2=
 persist.rild.nitz_short_ons_3=
-ril.subscription.types=NV,RUIM
+persist.radio.ramdump_sdcard=1
+ril.subscription.types=RUIM
 DEVICE_PROVISIONED=1
 persist.radio.msgtunnel.start=false
-# Start in cdma mode
-ro.telephony.default_network=5
+# Start in LTE/GSM/WCDMA/TDSCDMA mode
+# ro.telephony.default_network=20
 
 #
 # system props for the cne module
@@ -56,6 +57,8 @@ mm.enable.smoothstreaming=true
 #9273 is decimal sum of supported codecs in AAL
 #codecs:(PARSER_)AVI AC3 ASF AAC QCP DTS 3G2 MP2TS
 mm.enable.qcom_parser=37491
+
+ro.sf.lcd_density=320
 
 # Default to AwesomePlayer
 media.stagefright.use-awesome=true
@@ -98,13 +101,13 @@ persist.fuse_sdcard=true
 #
 ro.qc.sdk.audio.ssr=false
 ##fluencetype can be "fluence" or "fluencepro" or "none"
-ro.qc.sdk.audio.fluencetype=none
+ro.qc.sdk.audio.fluencetype=fluence
 persist.audio.fluence.voicecall=true
-persist.audio.fluence.voicerec=false
-persist.audio.fluence.speaker=true
+persist.audio.fluence.voicerec=true
+persist.audio.fluence.speaker=false
 
 # Enable/disable cabl
-ro.qualcomm.cabl=1
+ro.qualcomm.cabl=0
 
 # system prop for NFC DT
 ro.nfc.port=I2C
