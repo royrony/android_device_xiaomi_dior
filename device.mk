@@ -52,10 +52,18 @@ PRODUCT_PACKAGES += \
 
 #camera
 PRODUCT_PACKAGES += \
-    camera.msm8226
+    camera.msm8226 \
+	libboringssl-compat
 
 #fstab.qcom
 PRODUCT_PACKAGES += fstab.qcom
+
+# Charger
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/sbin/chargeonlymode:root/sbin/chargeonlymode
+
+#thermal-engine
+PRODUCT_PACKAGES +=$(LOCAL_PATH)/config/thermal-engine-8226.conf:system/etc/thermal-engine-8226.conf
 
 #keylayout
 PRODUCT_PACKAGES += \
@@ -63,6 +71,17 @@ PRODUCT_PACKAGES += \
 	ft5x06.kl \
 	ist30xx.kl \
 	msm8226-tapan-snd-card_Button_Jack.kl
+
+#gps
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/gps/gps.conf:system/etc/gps.conf \
+    $(LOCAL_PATH)/gps/flp.conf:system/etc/flp.conf \
+    $(LOCAL_PATH)/gps/izat.conf:system/etc/izat.conf \
+    $(LOCAL_PATH)/gps/quipc.conf:system/etc/quipc.conf \
+    $(LOCAL_PATH)/gps/sap.conf:system/etc/sap.conf
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.gps.agps_provider=1
 
 #wlan driver
 PRODUCT_COPY_FILES += \

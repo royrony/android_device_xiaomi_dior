@@ -59,16 +59,10 @@ on post-fs-data
     mkdir /data/tombstones 0771 system system
     mkdir /tombstones/modem 0771 system system
 
-    # Set light thermal restrictions while running bootanimation
-    # [throttle_freq, throttle_temp, unthrottle_temp]
-    write /sys/kernel/msm_thermal/low_thresh "1593600 50 47"
-    write /sys/kernel/msm_thermal/mid_thresh "1344000 55 53"
-    write /sys/kernel/msm_thermal/high_thresh "1190400 60 57"
-    write /sys/kernel/msm_thermal/enabled 1
-
     # Adjust vibrator amplitude
     chown system system /sys/class/timed_output/vibrator/amp
     chmod 0664 /sys/class/timed_output/vibrator/amp
+    write /sys/class/timed_output/vibrator/amp 65
 
 on boot
     insmod /system/lib/modules/adsprpc.ko
@@ -79,6 +73,22 @@ on boot
     chown system system /sys/class/leds/torch-light/brightness
     # Enable Focaltech touch controller auto firmware update
     write /sys/bus/i2c/drivers/ft5x06_ts/5-0038/update_fw 1
+
+    # Enable writing to led blink node from userspace
+    chown system system /sys/class/leds/red/blink
+    chown system system /sys/class/leds/red/duty_pcts
+    chown system system /sys/class/leds/red/ramp_step_ms
+    chown system system /sys/class/leds/green/blink
+    chown system system /sys/class/leds/green/duty_pcts
+    chown system system /sys/class/leds/green/ramp_step_ms
+    chown system system /sys/class/leds/blue/blink
+    chown system system /sys/class/leds/blue/duty_pcts
+    chown system system /sys/class/leds/blue/ramp_step_ms
+
+    chown system system /sys/class/leds/flashlight/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
+    chmod 0664 /sys/class/leds/flashlight/brightness
+    chmod 0664 /sys/class/leds/button-backlight/brightness
 
 #Start the qcom-system-daemon service
 service qcomsysd /system/bin/qcom-system-daemon

@@ -22,6 +22,9 @@ persist.radio.msgtunnel.start=false
 # Start in LTE/GSM/WCDMA/TDSCDMA mode
 # ro.telephony.default_network=20
 
+#mpdecision
+ro.vendor.extension_library=/vendor/lib/libqc-opt.so
+
 #
 # system props for the cne module
 #
